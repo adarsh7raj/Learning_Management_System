@@ -17,20 +17,27 @@ let client: DynamoDBClient;
 
 /* DynamoDB Configuration */
 const isProduction = process.env.NODE_ENV === "production";
-
+console.log("Is Production:", isProduction);
 if (!isProduction) {
+  console.log("Using Local DynamoDB");
   dynamoose.aws.ddb.local();
   client = new DynamoDBClient({
     endpoint: "http://localhost:8000",
-    region: "us-east-2",
+    region: "us-west-2",
     credentials: {
       accessKeyId: "dummyKey123",
       secretAccessKey: "dummyKey123",
     },
   });
-} else {
+} else if(isProduction) {
+  console.log("Using Production DynamoDB");
   client = new DynamoDBClient({
-    region: process.env.AWS_REGION || "us-east-2",
+    region: process.env.AWS_REGION || "us-west-2",
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+    }
+   
   });
 }
 
