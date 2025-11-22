@@ -5,17 +5,26 @@ import { dark } from "@clerk/themes";
 import { Bell, BookOpen } from "lucide-react";
 import Link from "next/link";
 import React from "react";
-
+import Image from "next/image";
 const NonDashboardNavbar = () => {
   const { user } = useUser();
   const userRole = user?.publicMetadata?.userType as "student" | "teacher";
-
+  console.log(userRole);
   return (
     <nav className="nondashboard-navbar">
       <div className="nondashboard-navbar__container">
         <div className="nondashboard-navbar__search">
           <Link href="/" className="nondashboard-navbar__brand" scroll={false}>
-            EDROH
+             <Image
+              src="/logo.svg"
+              alt="GALGOTIAS Logo"
+              width={40}
+              height={40}
+              className="object-contain ml-[30px]"
+            />
+        <h1 className="text-xl  font-extrabold tracking-wide text-white drop-shadow-[0_0_6px_rgba(255,255,255,0.08)]">
+              GALGOTIAS
+            </h1>
           </Link>
           <div className="flex items-center gap-4">
             <div className="relative group">

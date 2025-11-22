@@ -14,6 +14,8 @@ const Courses = () => {
   const { user, isLoaded } = useUser();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  console.log("hi");
+  console.log(user);
 
   const {
     data: courses,

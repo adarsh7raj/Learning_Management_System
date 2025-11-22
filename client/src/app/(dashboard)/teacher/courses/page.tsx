@@ -22,7 +22,8 @@ const Courses = () => {
     isLoading,
     isError,
   } = useGetCoursesQuery({ category: "all" });
-
+  console.log("hi");
+console.log(user);
   const [createCourse] = useCreateCourseMutation();
   const [deleteCourse] = useDeleteCourseMutation();
 
