@@ -25,7 +25,7 @@ import {
 } from "recharts";
 
 const TeacherAnalyticsPage = () => {
-  const [granularity, setGranularity] = useState<"day" | "month">("day");
+  const [granularity, setGranularity] = useState<"day" | "month">("month");
   const { user, isLoaded } = useUser();
 
   const { data, isLoading } = useGetTeacherAnalyticsQuery(
@@ -33,7 +33,34 @@ const TeacherAnalyticsPage = () => {
     { skip: !isLoaded || !user }
   );
 
-  const chartData = useMemo(() => data?.series ?? [], [data]);
+  // 🔥 Convert data for single-axis display
+  const chartData = useMemo(() => {
+    const series = data?.series ?? [];
+
+    const formatted = series.map((item) => {
+      const revenueInDollars = item.revenue / 100;
+
+      return {
+        ...item,
+        revenue: revenueInDollars,
+        salesScaled: item.salesCount * 100, // scale sales → match revenue
+      };
+    });
+
+    if (formatted.length === 1) {
+      return [
+        formatted[0],
+        {
+          date: "Next",
+          salesCount: formatted[0].salesCount,
+          revenue: formatted[0].revenue,
+          salesScaled: formatted[0].salesScaled,
+        },
+      ];
+    }
+
+    return formatted;
+  }, [data]);
 
   if (!isLoaded || isLoading) return <Loading />;
   if (!user) return <div>Please sign in to view analytics.</div>;
@@ -51,7 +78,7 @@ const TeacherAnalyticsPage = () => {
             <SelectTrigger className="analytics__select">
               <SelectValue placeholder="Granularity" />
             </SelectTrigger>
-            <SelectContent className="analytics__select-content">
+            <SelectContent>
               <SelectItem value="day">Daily</SelectItem>
               <SelectItem value="month">Monthly</SelectItem>
             </SelectContent>
@@ -59,72 +86,78 @@ const TeacherAnalyticsPage = () => {
         }
       />
 
+      {/* STATS */}
       <div className="analytics__stats">
-        <div className="analytics__stat-card">
-          <p className="analytics__stat-label">Total Revenue</p>
-          <p className="analytics__stat-value">
-            {formatPrice(data?.totals.revenue ?? 0)}
-          </p>
+        <div>
+          <p>Total Revenue</p>
+          <p>{formatPrice((data?.totals.revenue ?? 0))}</p>
         </div>
-        <div className="analytics__stat-card">
-          <p className="analytics__stat-label">Courses Sold</p>
-          <p className="analytics__stat-value">{data?.totals.salesCount ?? 0}</p>
+
+        <div>
+          <p>Courses Sold</p>
+          <p>{data?.totals.salesCount ?? 0}</p>
         </div>
-        <div className="analytics__stat-card">
-          <p className="analytics__stat-label">Your Courses</p>
-          <p className="analytics__stat-value">{data?.totals.courseCount ?? 0}</p>
+
+        <div>
+          <p>Your Courses</p>
+          <p>{data?.totals.courseCount ?? 0}</p>
         </div>
       </div>
 
+      {/* CHART */}
       <div className="analytics__chart-card">
         {chartData.length === 0 ? (
-          <div className="analytics__empty">No sales data yet.</div>
+          <div>No data</div>
         ) : (
-          <div className="analytics__chart">
-            <ResponsiveContainer width="100%" height={360}>
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#3a3a3a" />
-                <XAxis dataKey="date" stroke="#9ca3af" />
-                <YAxis yAxisId="left" stroke="#9ca3af" />
-                <YAxis
-                  yAxisId="right"
-                  orientation="right"
-                  stroke="#9ca3af"
-                  tickFormatter={(v) => formatPrice(v)}
-                />
-                <Tooltip
-                formatter={(value, name) => {
-  if (name === "revenue") {
-    return [formatPrice(Number(value)), "Revenue"];
-  }
-  return [value, "Sales"];
-}}
-                />
-                <Legend />
-                <Line
-                  yAxisId="left"
-                  type="monotone"
-                  dataKey="salesCount"
-                  stroke="#60a5fa"
-                  strokeWidth={2}
-                  dot={false}
-                  name="Sales"
-                />
-                <Line
-                  yAxisId="right"
-                  type="monotone"
-                  dataKey="revenue"
-                  stroke="#34d399"
-                  strokeWidth={2}
-                  dot={false}
-                  name="Revenue"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+          <ResponsiveContainer width="100%" height={360}>
+            <LineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+
+              <XAxis dataKey="date" />
+
+              {/* SINGLE Y AXIS */}
+              <YAxis
+                domain={[0, "auto"]}
+                tickFormatter={(v) => `$${v}`}
+              />
+
+              {/* Tooltip */}
+              <Tooltip
+                formatter={(value, name, props) => {
+                  if (name === "Revenue") {
+                    return [`$${value}`, "Revenue"];
+                  }
+                  return [props.payload.salesCount, "Sales"];
+                }}
+              />
+
+              <Legend />
+
+              {/* Revenue */}
+              <Line
+                type="monotone"
+                dataKey="revenue"
+                stroke="#34d399"
+                strokeWidth={3}
+                dot={{ r: 4 }}
+                name="Revenue"
+              />
+
+              {/* Sales (scaled) */}
+              <Line
+                type="monotone"
+                dataKey="salesScaled"
+                stroke="#60a5fa"
+                strokeWidth={2}
+                dot={{ r: 4 }}
+                name="Sales"
+              />
+            </LineChart>
+          </ResponsiveContainer>
         )}
       </div>
     </div>
   );
 };
+
 export default TeacherAnalyticsPage;
