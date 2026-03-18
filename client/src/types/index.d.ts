@@ -92,6 +92,20 @@ declare global {
     onDelete: (course: Course) => void;
     isOwner: boolean;
   }
+  interface TeacherAnalyticsPoint {
+  date: string;
+  salesCount: number;
+  revenue: number; // cents
+}
+
+interface TeacherAnalytics {
+  series: TeacherAnalyticsPoint[];
+  totals: {
+    salesCount: number;
+    revenue: number; // cents
+    courseCount: number;
+  };
+}
 
   interface Comment {
     commentId: string;

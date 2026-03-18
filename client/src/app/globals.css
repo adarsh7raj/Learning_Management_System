@@ -118,6 +118,47 @@ input[type="color"] {
   @apply hover:!bg-customgreys-darkerGrey;
   @apply hover:!text-white-100;
 }
+/*analytics classes*/ 
+.analytics {
+  @apply w-full h-full space-y-6;
+}
+
+.analytics__select {
+  @apply w-[170px] border-none bg-customgreys-primarybg;
+}
+
+.analytics__select-content {
+  @apply bg-customgreys-primarybg;
+}
+
+.analytics__stats {
+  @apply grid grid-cols-1 md:grid-cols-3 gap-4;
+}
+
+.analytics__stat-card {
+  @apply bg-customgreys-secondarybg rounded-lg p-4;
+}
+
+.analytics__stat-label {
+  @apply text-sm text-gray-400;
+}
+
+.analytics__stat-value {
+  @apply text-2xl font-semibold text-white-50 mt-2;
+}
+
+.analytics__chart-card {
+  @apply bg-customgreys-secondarybg rounded-lg p-4;
+}
+
+.analytics__chart {
+  @apply w-full h-[380px];
+}
+
+.analytics__empty {
+  @apply h-[380px] flex items-center justify-center text-gray-400;
+}
+
 
 /* Component Classes */
 

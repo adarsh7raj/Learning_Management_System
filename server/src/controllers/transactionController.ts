@@ -4,7 +4,7 @@ import { Request, Response } from "express";
 import Course from "../models/courseModel";
 import Transaction from "../models/transactionModel";
 import UserCourseProgress from "../models/userCourseProgressModel";
-
+import { getAuth } from "@clerk/express"
 dotenv.config();
 
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -127,5 +127,84 @@ export const createTransaction = async (
     res
       .status(500)
       .json({ message: "Error creating transaction and enrollment", error });
+  }
+};
+
+export const getTeacherAnalytics = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { userId } = getAuth(req);
+  const { granularity = "day" } = req.query as { granularity?: "day" | "month" };
+
+  if (!userId) {
+    res.status(401).json({ message: "Unauthorized" });
+    return;
+  }
+
+  try {
+    const teacherCourses = await Course.scan("teacherId").eq(userId).exec();
+    const courseIds = teacherCourses.map((c: any) => c.courseId);
+
+    if (courseIds.length === 0) {
+      res.json({
+        message: "Teacher analytics retrieved successfully",
+        data: {
+          series: [],
+          totals: { salesCount: 0, revenue: 0, courseCount: 0 },
+        },
+      });
+      return;
+    }
+
+    const txGroups = await Promise.all(
+      courseIds.map((courseId) =>
+        Transaction.query("courseId")
+          .eq(courseId)
+          .using("CourseTransactionsIndex")
+          .exec()
+      )
+    );
+
+    const transactions = txGroups.flat();
+
+    const bucket = new Map<string, { salesCount: number; revenue: number }>();
+
+    for (const tx of transactions as any[]) {
+      const d = new Date(tx.dateTime);
+      const key =
+        granularity === "month"
+          ? d.toISOString().slice(0, 7) // YYYY-MM
+          : d.toISOString().slice(0, 10); // YYYY-MM-DD
+
+      const current = bucket.get(key) ?? { salesCount: 0, revenue: 0 };
+      current.salesCount += 1;
+      current.revenue += tx.amount ?? 0;
+      bucket.set(key, current);
+    }
+
+    const series = Array.from(bucket.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([date, v]) => ({
+        date,
+        salesCount: v.salesCount,
+        revenue: v.revenue,
+      }));
+
+    const totals = series.reduce(
+      (acc, p) => ({
+        salesCount: acc.salesCount + p.salesCount,
+        revenue: acc.revenue + p.revenue,
+        courseCount: teacherCourses.length,
+      }),
+      { salesCount: 0, revenue: 0, courseCount: teacherCourses.length }
+    );
+
+    res.json({
+      message: "Teacher analytics retrieved successfully",
+      data: { series, totals },
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error retrieving teacher analytics", error });
   }
 };

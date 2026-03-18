@@ -30,11 +30,9 @@ export default clerkMiddleware(async (auth, req) => {
       console.error("Failed to get clerk user in middleware:", err);
     }
   }
-
   if (isStudentRoute(req) && userRole !== "student") {
     return NextResponse.redirect(new URL("/teacher/courses", req.url));
   }
-
   if (isTeacherRoute(req) && userRole !== "teacher") {
     return NextResponse.redirect(new URL("/user/courses", req.url));
   }

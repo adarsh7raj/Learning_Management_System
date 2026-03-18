@@ -19,6 +19,7 @@ import {
   PanelLeft,
   Settings,
   User,
+  LineChart
 } from "lucide-react";
 import Loading from "./Loading";
 import Image from "next/image";
@@ -42,7 +43,9 @@ const AppSidebar = () => {
       { icon: BookOpen, label: "Courses", href: "/teacher/courses" },
       { icon: DollarSign, label: "Billing", href: "/teacher/billing" },
       { icon: User, label: "Profile", href: "/teacher/profile" },
+      { icon: LineChart, label: "Analytics", href: "/teacher/analytics" },
       { icon: Settings, label: "Settings", href: "/teacher/settings" },
+
     ],
   };
 

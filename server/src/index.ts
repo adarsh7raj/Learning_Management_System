@@ -29,6 +29,7 @@ export const clerkClient = createClerkClient({
   secretKey: process.env.CLERK_SECRET_KEY,
 });
 
+
 const app = express();
 app.use(express.json());
 app.use(helmet());

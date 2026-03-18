@@ -36,7 +36,7 @@ const PaymentPageContent = () => {
       : process.env.NEXT_PUBLIC_VERCEL_URL
       ? `${process.env.NEXT_PUBLIC_VERCEL_URL}`
       : undefined;
-
+  console.log("baseUrl:", baseUrl);
     const result = await stripe.confirmPayment({
       elements,
       confirmParams: {
