@@ -40,7 +40,7 @@ const SharedNotificationSettings = ({
     const updatedUser = {
       userId: user.id,
       publicMetadata: {
-        ...user.publicMetadata,
+        userType: user.publicMetadata.userType as "teacher" | "student",
         settings: {
           ...currentSettings,
           ...data,
